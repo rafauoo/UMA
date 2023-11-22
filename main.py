@@ -9,4 +9,12 @@ y = mushroom.data.targets
 # Pobieranie listy atrybutów (kolumn) z DataFrame
 tree = ID3(ID3.TreeType.BINARY)
 tree.build(X, y, X.columns.tolist())
-tree.print()
+#tree.print()
+for ind, data in enumerate(X.iloc):
+    result = tree.predict(data)
+    if result != y.iloc[ind]['poisonous']:
+        print("ERROR FOUND!")
+        #print(data)
+        print(result)
+        print(y.iloc[ind])
+        print("      ")

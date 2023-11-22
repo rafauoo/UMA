@@ -108,12 +108,14 @@ class ID3:
             for value in set(elements[best_attribute]):
                 if (value != best_value):
                     other_values.append(value)
+                    root._default_child_value = value
             possible_value_nodes.append(other_values)
 
         if(self.type == self.TreeType.IDENTITY):
             best_attribute = choose_best_attribute_identity(elements, target_attribute, attributes)
             for value in set(elements[best_attribute]):
                 possible_value_nodes.append(list([value]))
+                root._default_child_value = value
         
         #   Przypisujemy wybrany_atrybut jako atrybut dzielący (dzielnik) dla naszego korzenia.
         root.set_split_feature(best_attribute)
@@ -162,4 +164,17 @@ class ID3:
                 self.print_tree(child, indent + "    ")
         else:
             print(indent + f"Leaf node, class: {node.get_value()}")
+    
+    def predict(self, data):
+        return self.predict_tree(self.root, data)
+    
+    def predict_tree(self, node: Node, data):
+        if node.get_value() is None:
+            if data[node.get_split_feature()] in node.get_children():
+                return self.predict_tree(node.get_children()[data[node.get_split_feature()]], data)
+            else:
+                return self.predict_tree(node.get_children()[node.get_default_child_value()], data)
+        else:
+            return node.get_value()
+
         

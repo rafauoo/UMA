@@ -1,15 +1,22 @@
 
 
 class Node:
-    def __init__(self, split_feature=None, value=None, children=None) -> None:
+    def __init__(self, split_feature=None, value=None, children=None, default_child_value=None) -> None:
         self._value = value
         self._children = children or {}
         self._split_feature = split_feature
         self._depth = 0
+        self._default_child_value = default_child_value
     
     def add_child(self, child, attr_values_for_child) -> None:
         for attr_value in attr_values_for_child:
             self._children[attr_value] = child
+    
+    def set_default_child_value(self, child_value):
+        self._default_child_value = child_value
+    
+    def get_default_child_value(self):
+        return self._default_child_value
     
     def set_value(self, value) -> None:
         self._value = value
