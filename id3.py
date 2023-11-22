@@ -71,22 +71,28 @@ class ID3:
         BINARY = 0
         IDENTITY = 1
 
-    def __init__(self, type: TreeType) -> None:
+    def __init__(self, type: TreeType, root=None) -> None:
         self.type = type
+        self.root = root
 
     def build(self, elements, target_attribute, attributes):
+        self.root = self.build_tree(elements, target_attribute, attributes, 0)
+    
+    def build_tree(self, elements, target_attribute, attributes, depth=0) -> Node:
         # Tworzymy korzeń drzewa
         root = Node()
+        root.set_depth(depth)
 
         # Jeśli wszystkie elementy zbioru mają tą samą klasę to zwracamy drzewo jednoelementowe z tą klasą
-        if(len(set(target_attribute)) == 1):
-            root.add_value(target_attribute[0])
+        if(len(set(target_attribute.iloc[:, 0])) == 1):
+            root.set_value(next(iter(set(target_attribute.iloc[:, 0]))))
             return root
         
         # Jeśli jest brak atrybutów na których można wykonać predykcję 
         # to zwracamy drzewo jednoelementowe z klasą większościową
         if(len(attributes) == 0):
-            root.add_value(most_common(target_attribute))
+            root.set_value(most_common(target_attribute))
+            return root
         
         # W przeciwnym wypadku:
         #   Wybieramy atrybut, według którego podział skutkuje najmniejszą entropią. 
@@ -116,7 +122,8 @@ class ID3:
         for values_for_node in possible_value_nodes:
             # Dodajemy nową gałąź do korzenia naszego drzewa, 
             # do której klasyfikowane będą elementy dla których wybrany_atrybut = v[i].
-            filtered_elements = elements[elements[root.get_split_feature()] in values_for_node]
+            filtered_elements = elements[elements[root.get_split_feature()].isin(values_for_node)]
+            filtered_targets = target_attribute[elements[root.get_split_feature()].isin(values_for_node)]
 
             # Jeśli nie ma elementów spełniających powyższą równość (wybrany atrybut = v[i]), 
             # to do gałęzi dodajemy liść z klasą dominującą wśród elementów
@@ -130,7 +137,29 @@ class ID3:
             # ID3(elementy spełniające wybrany_atrybut = v[i], atrybut_klasyfikacyjny, atrybuty - wybrany_atrybut)
             else:
                 new_attributes = [attr for attr in attributes if attr != best_attribute]
-                child_tree = self.build(filtered_elements, target_attribute, new_attributes)
+                child_tree = self.build_tree(filtered_elements, filtered_targets, new_attributes, depth+1)
                 root.add_child(child_tree, values_for_node)
-
+            
+        return root
     
+    def print(self):
+        self.print_tree(self.root)
+    
+    def print_tree(self, node: Node, indent=""):
+        if node.get_split_feature() is not None:
+            print(indent + f"Split feature: {node.get_split_feature()}")
+            inverted_children = {}
+            for key, value in node.get_children().items():
+                if value not in inverted_children:
+                    inverted_children[value] = [key]
+                else:
+                    inverted_children[value].append(key)
+            for child, values in inverted_children.items():
+                str = indent + f"  Values: "
+                for value in values:
+                    str += f"{value}, "
+                print(str)
+                self.print_tree(child, indent + "    ")
+        else:
+            print(indent + f"Leaf node, class: {node.get_value()}")
+        

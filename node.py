@@ -5,6 +5,7 @@ class Node:
         self._value = value
         self._children = children or {}
         self._split_feature = split_feature
+        self._depth = 0
     
     def add_child(self, child, attr_values_for_child) -> None:
         for attr_value in attr_values_for_child:
@@ -25,4 +26,9 @@ class Node:
     def get_split_feature(self):
         return self._split_feature
 
+    def set_depth(self, depth):
+        self._depth = depth
+    
+    def get_depth(self):
+        return self._depth
     

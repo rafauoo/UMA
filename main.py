@@ -9,3 +9,4 @@ y = mushroom.data.targets
 # Pobieranie listy atrybutów (kolumn) z DataFrame
 tree = ID3(ID3.TreeType.BINARY)
 tree.build(X, y, X.columns.tolist())
+tree.print()
