@@ -4,7 +4,7 @@ from enum import Enum
 import math
 
 def most_common(data):
-    return max(set(data), key=data.count)
+    return data.value_counts().idxmax()[0]
 
 def entropy(class_count, num_samples):
     p = class_count / num_samples
@@ -38,7 +38,7 @@ def get_best_value_for_attribute(elements, attribute, target_attribute):
 def choose_best_attribute_binary(elements, target_attribute, attributes: list):
     best_attribute = ''
     best_value = ''
-    max_inf_gain = 0
+    max_inf_gain = -1
     for attribute in attributes:
         inf_gain, value = get_best_value_for_attribute(elements, attribute, target_attribute)
         if inf_gain > max_inf_gain:
@@ -50,7 +50,7 @@ def choose_best_attribute_binary(elements, target_attribute, attributes: list):
 # IDENTITY
 def choose_best_attribute_identity(elements, target_attribute, attributes: list):
     best_attribute = ''
-    max_inf_gain = 0
+    max_inf_gain = -1
     all_classes_entropy = calc_entropy_for_set(target_attribute)
     for attribute in attributes:
         entropy = 0
@@ -75,7 +75,8 @@ class ID3:
         self.type = type
         self.root = root
 
-    def build(self, elements, target_attribute, attributes):
+    def build(self, elements, target_attribute):
+        attributes = elements.columns.tolist()
         self.root = self._build_tree(elements, target_attribute, attributes, 0)
     
     def _build_tree(self, elements, target_attribute, attributes, depth=0) -> Node:
@@ -131,7 +132,7 @@ class ID3:
             # to do gałęzi dodajemy liść z klasą dominującą wśród elementów
             if (len(filtered_elements) == 0):
                 child_leaf = Node()
-                child_leaf.add_value(most_common(target_attribute))
+                child_leaf.set_value(most_common(target_attribute))
                 root.add_child(child_leaf, values_for_node)
             
             # W przeciwnym wypadku do gałęzi dołączamy poddrzewo, 
@@ -190,6 +191,4 @@ class ID3:
         for child in node.get_childrenset().keys():
             sum += self._get_node_count(child)
         return 1 if node.is_leaf() else sum + 1
-
-
         
