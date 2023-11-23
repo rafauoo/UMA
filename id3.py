@@ -76,9 +76,9 @@ class ID3:
         self.root = root
 
     def build(self, elements, target_attribute, attributes):
-        self.root = self.build_tree(elements, target_attribute, attributes, 0)
+        self.root = self._build_tree(elements, target_attribute, attributes, 0)
     
-    def build_tree(self, elements, target_attribute, attributes, depth=0) -> Node:
+    def _build_tree(self, elements, target_attribute, attributes, depth=0) -> Node:
         # Tworzymy korzeń drzewa
         root = Node()
         root.set_depth(depth)
@@ -139,42 +139,57 @@ class ID3:
             # ID3(elementy spełniające wybrany_atrybut = v[i], atrybut_klasyfikacyjny, atrybuty - wybrany_atrybut)
             else:
                 new_attributes = [attr for attr in attributes if attr != best_attribute]
-                child_tree = self.build_tree(filtered_elements, filtered_targets, new_attributes, depth+1)
+                child_tree = self._build_tree(filtered_elements, filtered_targets, new_attributes, depth+1)
                 root.add_child(child_tree, values_for_node)
             
         return root
     
     def print(self):
-        self.print_tree(self.root)
+        self._print_tree(self.root)
     
-    def print_tree(self, node: Node, indent=""):
+    def _print_tree(self, node: Node, indent=""):
         if node.get_split_feature() is not None:
             print(indent + f"Split feature: {node.get_split_feature()}")
-            inverted_children = {}
-            for key, value in node.get_children().items():
-                if value not in inverted_children:
-                    inverted_children[value] = [key]
-                else:
-                    inverted_children[value].append(key)
-            for child, values in inverted_children.items():
+            childrenset = node.get_childrenset()
+            for child, values in childrenset.items():
                 str = indent + f"  Values: "
                 for value in values:
-                    str += f"{value}, "
+                    str += f"{value}"
+                    if value == node.get_default_child_value():
+                        str += " [DEFAULT]"
+                    str += ", "
                 print(str)
-                self.print_tree(child, indent + "    ")
+                self._print_tree(child, indent + "    ")
         else:
             print(indent + f"Leaf node, class: {node.get_value()}")
     
     def predict(self, data):
-        return self.predict_tree(self.root, data)
+        return self._predict_tree(self.root, data)
     
-    def predict_tree(self, node: Node, data):
+    def _predict_tree(self, node: Node, data):
         if node.get_value() is None:
             if data[node.get_split_feature()] in node.get_children():
-                return self.predict_tree(node.get_children()[data[node.get_split_feature()]], data)
+                return self._predict_tree(node.get_children()[data[node.get_split_feature()]], data)
             else:
-                return self.predict_tree(node.get_children()[node.get_default_child_value()], data)
+                return self._predict_tree(node.get_children()[node.get_default_child_value()], data)
         else:
             return node.get_value()
+    
+    def predict_set(self, data):
+        predictions = []
+        for x in data.iloc:
+            result = self.predict(x)
+            predictions.append(result)
+        return predictions
+
+    def get_tree_node_count(self):
+        return self._get_node_count(self.root)
+
+    def _get_node_count(self, node: Node):
+        sum = 0
+        for child in node.get_childrenset().keys():
+            sum += self._get_node_count(child)
+        return 1 if node.is_leaf() else sum + 1
+
 
         

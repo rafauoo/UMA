@@ -39,3 +39,16 @@ class Node:
     def get_depth(self):
         return self._depth
     
+    def get_childrenset(self):
+        inverted_children = {}
+        for key, value in self.get_children().items():
+            if value not in inverted_children:
+                inverted_children[value] = [key]
+            else:
+                inverted_children[value].append(key)
+        return inverted_children
+
+    def is_leaf(self):
+        return len(self.get_children().keys()) == 0
+            
+    
