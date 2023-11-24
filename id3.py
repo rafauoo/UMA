@@ -4,13 +4,22 @@ from enum import Enum
 import math
 
 def most_common(data):
+    '''
+    Returns most common value in given dataset.
+    '''
     return data.value_counts().idxmax()[0]
 
 def entropy(class_count, num_samples):
+    '''
+    Calculates entropy for given class.
+    '''
     p = class_count / num_samples
     return -p * math.log(p, 2)
 
 def calc_entropy_for_set(data):
+    '''
+    Calculates entropy for given dataset
+    '''
     sum = 0
     for value_count in data.value_counts():
         sum = sum + entropy(value_count, len(data))
@@ -18,6 +27,9 @@ def calc_entropy_for_set(data):
 
 # BINARY
 def get_best_value_for_attribute(elements, attribute, target_attribute):
+    '''
+    When attribute was found it is needed to find best value.
+    '''
     all_classes_entropy = calc_entropy_for_set(target_attribute)
     max_inf_gain = 0
     best_value = ''
@@ -35,7 +47,12 @@ def get_best_value_for_attribute(elements, attribute, target_attribute):
             best_value = value
     return (max_inf_gain, best_value)
 
+
+# BINARY
 def choose_best_attribute_binary(elements, target_attribute, attributes: list):
+    '''
+    Function used for choosing best attribute when division is binary.
+    '''
     best_attribute = ''
     best_value = ''
     max_inf_gain = -1
@@ -49,6 +66,10 @@ def choose_best_attribute_binary(elements, target_attribute, attributes: list):
 
 # IDENTITY
 def choose_best_attribute_identity(elements, target_attribute, attributes: list):
+    '''
+    Function used for choosing best attribute when division is identity.
+    We do not have to choose best value for attribute since all values will be represented.
+    '''
     best_attribute = ''
     max_inf_gain = -1
     all_classes_entropy = calc_entropy_for_set(target_attribute)
@@ -67,7 +88,13 @@ def choose_best_attribute_identity(elements, target_attribute, attributes: list)
     return best_attribute
 
 class ID3:
+    '''
+    ID3 tree representation class
+    '''
     class TreeType(Enum):
+        '''
+        Enum used for defining type of the tree (BINARY/IDENTITY).
+        '''
         BINARY = 0
         IDENTITY = 1
 

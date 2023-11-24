@@ -1,6 +1,7 @@
-
-
 class Node:
+    '''
+    Node class representing node in ID3 tree
+    '''
     def __init__(self, split_feature=None, value=None, children=None, default_child_value=None) -> None:
         self._value = value
         self._children = children or {}
@@ -13,6 +14,10 @@ class Node:
             self._children[attr_value] = child
     
     def set_default_child_value(self, child_value):
+        '''
+        Default child value is used when value in predict data is not known.
+        This value is being treated exactly as it was default_child_value.
+        '''
         self._default_child_value = child_value
     
     def get_default_child_value(self):
@@ -40,6 +45,11 @@ class Node:
         return self._depth
     
     def get_childrenset(self):
+        '''
+        Children have format children[value]->next_node.
+        It is because of the simplicity of usage when predicting.
+        But when it comes to get all children it is needed to invert the set.
+        '''
         inverted_children = {}
         for key, value in self.get_children().items():
             if value not in inverted_children:

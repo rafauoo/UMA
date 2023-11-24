@@ -9,6 +9,9 @@ from random import randint
 import numpy as np
 
 def get_subsets(dataset, num_subsets):
+    '''
+    Function used for cross validation. It divides set into k subsets.
+    '''
     X = dataset.data.features
     y = dataset.data.targets
     X, y = shuffle(X, y, random_state=randint(0,1000))
@@ -95,6 +98,7 @@ def cross_validation(tree: ID3, dataset, k):
     X_subsets, Y_subsets = get_subsets(dataset, k)
     
     conf = 0
+    nodes_count = 0
 
     for i in range(0, k):
         X_train = X_subsets[i]
@@ -107,20 +111,24 @@ def cross_validation(tree: ID3, dataset, k):
 
         tree.build(X_train, Y_train)
         Y_pred = tree.predict_set(X_test)
-
+        nodes_count += tree.get_tree_node_count()
         if num_classes == 2:
             conf += confusion_matrix(Y_test, Y_pred)
         else:
             conf += micro_average(confusion_matrix(Y_test, Y_pred))
     
-    return (conf/k, get_accuracy(conf), get_sensivity(conf), get_specificity(conf), get_precision(conf), get_f_measure(conf))
+    return (conf/k, get_accuracy(conf), get_sensivity(conf), get_specificity(conf), get_precision(conf), get_f_measure(conf), nodes_count/k)
 
 def experiment(tree, dataset, k, epochs):
+    '''
+    Experiment is repeating cross_validation n times.
+    '''
     conf = 0
     accuracy = 0
     sensivity = 0
     specificity = 0
     precision = 0
+    nodes_count = 0
     f_measure = 0
     for i in range(0, epochs):
         result = cross_validation(tree, dataset, k)
@@ -130,12 +138,13 @@ def experiment(tree, dataset, k, epochs):
         specificity += result[3]
         precision += result[4]
         f_measure += result[5]
+        nodes_count += result[6]
     
     print("Mean Confusion Matrix")
     print(conf/epochs)
-
     print("Mean Accuracy:", accuracy/epochs)
     print("Mean Sensivity:", sensivity/epochs)
     print("Mean Specificity:", specificity/epochs)
     print("Mean Precision:", precision/epochs)
     print("Mean F_measure:", f_measure/epochs)
+    print("Mean nodes count:", nodes_count/epochs)
