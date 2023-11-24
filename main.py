@@ -2,11 +2,11 @@ from ucimlrepo import fetch_ucirepo
 from id3 import ID3
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-from experiments import cross_validation
+from experiments import experiment
 
 mushroom = fetch_ucirepo(id=14)
-tree = ID3(ID3.TreeType.IDENTITY)
-cross_validation(tree, mushroom, 10)
+tree = ID3(ID3.TreeType.BINARY)
+experiment(tree, mushroom, 10, 100)
 
 # fetch dataset 
 # print("Program start")

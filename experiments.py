@@ -11,16 +11,13 @@ import numpy as np
 def get_subsets(dataset, num_subsets):
     X = dataset.data.features
     y = dataset.data.targets
-    # Wymieszaj dane
     X, y = shuffle(X, y, random_state=randint(0,1000))
 
     subset_size = len(X) // num_subsets
 
-    # Inicjalizuj listy do przechowywania podzbiorów
     X_subsets = []
     y_subsets = []
 
-    # Dzieli dane na podzbiory
     for i in range(num_subsets):
         start_idx = i * subset_size
         end_idx = (i + 1) * subset_size if i < num_subsets - 1 else None
@@ -119,5 +116,26 @@ def cross_validation(tree: ID3, dataset, k):
     return (conf/k, get_accuracy(conf), get_sensivity(conf), get_specificity(conf), get_precision(conf), get_f_measure(conf))
 
 def experiment(tree, dataset, k, epochs):
+    conf = 0
+    accuracy = 0
+    sensivity = 0
+    specificity = 0
+    precision = 0
+    f_measure = 0
     for i in range(0, epochs):
         result = cross_validation(tree, dataset, k)
+        conf += result[0]
+        accuracy += result[1]
+        sensivity += result[2]
+        specificity += result[3]
+        precision += result[4]
+        f_measure += result[5]
+    
+    print("Mean Confusion Matrix")
+    print(conf/epochs)
+
+    print("Mean Accuracy:", accuracy/epochs)
+    print("Mean Sensivity:", sensivity/epochs)
+    print("Mean Specificity:", specificity/epochs)
+    print("Mean Precision:", precision/epochs)
+    print("Mean F_measure:", f_measure/epochs)
