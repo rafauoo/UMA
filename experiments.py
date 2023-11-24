@@ -1,8 +1,12 @@
-from ucimlrepo import fetch_ucirepo 
+'''
+Created by
+Rafal Budnik
+Zuzanna Damszel
+'''
+
 from id3 import ID3
 from sklearn.utils import shuffle
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold
 import pandas as pd
 from random import randint

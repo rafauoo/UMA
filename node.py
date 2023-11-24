@@ -1,3 +1,9 @@
+'''
+Created by
+Rafal Budnik
+Zuzanna Damszel
+'''
+
 class Node:
     '''
     Node class representing node in ID3 tree

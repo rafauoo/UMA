@@ -1,5 +1,11 @@
+'''
+Created by
+Rafal Budnik
+Zuzanna Damszel
+'''
+
+
 import pandas as pd
-from id3 import ID3
 from ucimlrepo.dotdict import dotdict
 
 def get_balance_scale_set():

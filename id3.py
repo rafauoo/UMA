@@ -1,5 +1,10 @@
+'''
+Created by
+Rafal Budnik
+Zuzanna Damszel
+'''
+
 from node import Node
-import numpy as np
 from enum import Enum
 import math
 
