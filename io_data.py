@@ -18,6 +18,9 @@ def get_balance_scale_set():
     df = pd.read_csv(data_path, names=column_names)
     X = df.drop('Class', axis=1)
     y = df[['Class']]
+    metadata = {
+        'name': "Balance Scale"
+    }
     data = {
         'features': X,
         'targets': y,
@@ -25,5 +28,6 @@ def get_balance_scale_set():
     }
     result = {
         'data': dotdict(data),
+        'metadata': dotdict(metadata)
     }
     return dotdict(result)

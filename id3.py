@@ -107,6 +107,9 @@ class ID3:
         self.type = type
         self.root = root
 
+    def clear(self):
+        self.root = None
+
     def build(self, elements, target_attribute):
         attributes = elements.columns.tolist()
         self.root = self._build_tree(elements, target_attribute, attributes, 0)
@@ -138,6 +141,7 @@ class ID3:
             best_attribute, best_value = choose_best_attribute_binary(elements, target_attribute, attributes)
             possible_value_nodes.append(list([best_value]))
             other_values = []
+            root._default_child_value = best_value
             for value in set(elements[best_attribute]):
                 if (value != best_value):
                     other_values.append(value)
@@ -223,4 +227,13 @@ class ID3:
         for child in node.get_childrenset().keys():
             sum += self._get_node_count(child)
         return 1 if node.is_leaf() else sum + 1
+
+    def get_tree_leaf_count(self):
+        return self._get_leaf_count(self.root)
+
+    def _get_leaf_count(self, node: Node):
+        sum = 0
+        for child in node.get_childrenset().keys():
+            sum += self._get_leaf_count(child)
+        return 1 if node.is_leaf() else sum
         

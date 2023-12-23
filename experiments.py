@@ -63,6 +63,8 @@ def micro_average(matrix):
     ])
 
 def get_accuracy(matrix):
+    if matrix.shape[0] > 2:
+        matrix = micro_average(matrix)
     TP = matrix[0][0]
     TN = matrix[1][1]
     FP = matrix[1][0]
@@ -70,6 +72,8 @@ def get_accuracy(matrix):
     return (TP + TN) / (TP + FP + FN + TN)
 
 def get_sensivity(matrix):
+    if matrix.shape[0] > 2:
+        matrix = micro_average(matrix)
     TP = matrix[0][0]
     TN = matrix[1][1]
     FP = matrix[1][0]
@@ -77,6 +81,8 @@ def get_sensivity(matrix):
     return (TP) / (TP + FN)
 
 def get_specificity(matrix):
+    if matrix.shape[0] > 2:
+        matrix = micro_average(matrix)
     TP = matrix[0][0]
     TN = matrix[1][1]
     FP = matrix[1][0]
@@ -84,6 +90,8 @@ def get_specificity(matrix):
     return (TN) / (TN + FP)
 
 def get_precision(matrix):
+    if matrix.shape[0] > 2:
+        matrix = micro_average(matrix)
     TP = matrix[0][0]
     TN = matrix[1][1]
     FP = matrix[1][0]
@@ -91,37 +99,35 @@ def get_precision(matrix):
     return (TP) / (TP + FP)
 
 def get_f_measure(matrix):
+    if matrix.shape[0] > 2:
+        matrix = micro_average(matrix)
     TP = matrix[0][0]
     TN = matrix[1][1]
     FP = matrix[1][0]
     FN = matrix[0][1]
     return (2 * TP) / (2 * TP + FP + FN)
 
-def cross_validation(tree: ID3, dataset, k):
-    num_classes = len(set([a[0] for a in dataset.data.targets.values.tolist()]))
+def cross_validation(tree: ID3, dataset, k, classes):
     X_subsets, Y_subsets = get_subsets(dataset, k)
-    
     conf = 0
     nodes_count = 0
+    leaf_count = 0
 
     for i in range(0, k):
-        X_train = X_subsets[i]
-        Y_train = Y_subsets[i]
-        X_test_subsets = [subset for ind, subset in enumerate(X_subsets) if ind != i] 
-        Y_test_subsets = [subset for ind, subset in enumerate(Y_subsets) if ind != i] 
-        X_test = pd.concat(X_test_subsets)
-        Y_test = pd.concat(Y_test_subsets)
-        Y_test = [item for el in Y_test.values for item in el]
-
+        X_test = X_subsets[i]
+        Y_test = Y_subsets[i]
+        X_train_subsets = [subset for ind, subset in enumerate(X_subsets) if ind != i] 
+        Y_train_subsets = [subset for ind, subset in enumerate(Y_subsets) if ind != i] 
+        X_train = pd.concat(X_train_subsets)
+        Y_train = pd.concat(Y_train_subsets)
+        tree.clear()
         tree.build(X_train, Y_train)
         Y_pred = tree.predict_set(X_test)
         nodes_count += tree.get_tree_node_count()
-        if num_classes == 2:
-            conf += confusion_matrix(Y_test, Y_pred)
-        else:
-            conf += micro_average(confusion_matrix(Y_test, Y_pred))
+        leaf_count += tree.get_tree_leaf_count()
+        conf += confusion_matrix(Y_test, Y_pred, labels=classes)
     
-    return (conf/k, get_accuracy(conf), get_sensivity(conf), get_specificity(conf), get_precision(conf), get_f_measure(conf), nodes_count/k)
+    return (conf/k, get_accuracy(conf), get_sensivity(conf), get_specificity(conf), get_precision(conf), get_f_measure(conf), nodes_count/k, leaf_count/k)
 
 def experiment(tree, dataset, k, epochs):
     '''
@@ -134,8 +140,10 @@ def experiment(tree, dataset, k, epochs):
     precision = 0
     nodes_count = 0
     f_measure = 0
+    leaf_count = 0
+    classes = sorted(list(set(dataset.data.targets.iloc[:, 0].tolist())))
     for i in range(0, epochs):
-        result = cross_validation(tree, dataset, k)
+        result = cross_validation(tree, dataset, k, classes)
         conf += result[0]
         accuracy += result[1]
         sensivity += result[2]
@@ -143,12 +151,16 @@ def experiment(tree, dataset, k, epochs):
         precision += result[4]
         f_measure += result[5]
         nodes_count += result[6]
-    
+        leaf_count += result[7]
+
     print("Mean Confusion Matrix")
-    print(conf/epochs)
-    print("Mean Accuracy:", accuracy/epochs)
-    print("Mean Sensivity:", sensivity/epochs)
-    print("Mean Specificity:", specificity/epochs)
-    print("Mean Precision:", precision/epochs)
-    print("Mean F_measure:", f_measure/epochs)
-    print("Mean nodes count:", nodes_count/epochs)
+    print(classes)
+    np.set_printoptions(suppress=True, precision=4)
+    print(np.array(conf/epochs))
+    print(f"Mean Accuracy: {(accuracy*100/epochs):.2f}%")
+    print(f"Mean Sensivity: {(sensivity*100/epochs):.2f}%")
+    print(f"Mean Specificity: {(specificity*100/epochs):.2f}%")
+    print(f"Mean Precision: {(precision*100/epochs):.2f}%")
+    print(f"Mean F_measure: {(f_measure*100/epochs):.2f}%")
+    print(f"Mean nodes count: {(nodes_count/epochs):.2f}")
+    print(f"Mean leaf count: {(leaf_count/epochs):.2f}")
